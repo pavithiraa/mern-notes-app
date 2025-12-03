@@ -1,5 +1,8 @@
 import express from "express";
-import User from "../models/User";
+
+import User from "../models/User.js";
+import { protect } from "../middleware/auth.js";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -21,34 +24,43 @@ router.post("/regsiter", async (req, res) => {
       id: user._id,
       username: user.username,
       email: user?.email,
+      token: generateToken(user._id),
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.log(error.message);
+    res.status(500).json({ message: "Server error:" });
   }
 });
 
 //login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
+  console.log(req.body);
   try {
     const user = await User.findOne({ email });
-    if (!user || !(await user.matchPassword(password))) {
-      res.status(400).json({ message: "Invalid Crendentials" });
+    if (!user || !(await user.matchpassword(password))) {
+      return res.status(400).json({ message: "Invalid Crendentials" });
     }
 
     res.json({
       id: user._id,
       username: user.username,
       email: user?.email,
+      token: generateToken(user._id),
     });
   } catch (error) {
+    console.log(error.message);
     res.status(500).json({ message: "Server error" });
   }
 });
 
 //me
-// router.get("/me", async (req, res) => {
-//   res.status(200).json(req.user);
-// });
+router.get("/me", protect, async (req, res) => {
+  res.status(200).json(req.user);
+});
 
+//generate JWT
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+};
 export default router;
