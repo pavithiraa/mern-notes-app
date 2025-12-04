@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 const router = express.Router();
 
 //register
-router.post("/regsiter", async (req, res) => {
+router.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
   try {
     if (!username || !email || !password) {

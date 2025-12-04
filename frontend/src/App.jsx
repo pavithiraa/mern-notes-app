@@ -4,12 +4,40 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Home from "./components/Home";
 import Login from "./components/Login";
 import Register from "./components/Register";
+import { useEffect } from "react";
+import axios from "axios";
 
 const App = () => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    fetchUser();
+  }, []);
+  const fetchUser = async (req, res) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const { data } = await axios.get("/api/user/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(data);
+    } catch (error) {
+      localStorage.removeItem("token");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-xl text-white">Loading...</div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-500">
-      <Navbar user={user} />
+      <Navbar user={user} setUser={setUser} />
       <Routes>
         <Route
           path="/login"
@@ -17,7 +45,7 @@ const App = () => {
         />
         <Route
           path="/register"
-          element={user ? <Navigate to="/" /> : <Register />}
+          element={user ? <Navigate to="/" /> : <Register setUser={setUser} />}
         />
         <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
       </Routes>
