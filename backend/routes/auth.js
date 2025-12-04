@@ -35,7 +35,6 @@ router.post("/regsiter", async (req, res) => {
 //login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  console.log(req.body);
   try {
     const user = await User.findOne({ email });
     if (!user || !(await user.matchpassword(password))) {
